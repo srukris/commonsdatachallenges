@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data on the Ground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b46c0;--fg:#fff;--mut:#e3eaff;--card:#d63f27;--deep:#072f80;--line:rgba(255,255,255,.4);--acc:#ffd23f;--accfg:#1b1340;--ink:#0b2a7a}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.5 Outfit,"Segoe UI",Arial,sans-serif;padding-top:env(safe-area-inset-top,0)}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 110px}
+h1,h2,h3{font-family:"Space Mono",ui-monospace,Menlo,Consolas,monospace;margin:0}
+h1{font-size:clamp(2rem,8vw,3.4rem);line-height:1.05;margin:4px 0 8px}
+h2{font-size:1.3rem;margin:0 0 8px}h3{font-size:1.05rem;margin:14px 0 6px}
+.kick{font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:.82rem;color:var(--acc)}
+.s{color:var(--mut);margin:0 0 10px}.tag{font-size:.88rem;color:var(--mut)}
+.card{background:var(--card);padding:18px;margin:14px 0}.card.deep{background:var(--deep)}.card.white{background:#fff;color:var(--ink)}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:transparent;color:var(--fg);border:2px solid var(--fg);border-radius:999px;padding:7px 16px;cursor:pointer;font-weight:600}
+button.on{background:var(--fg);color:var(--bg)}
+button.pri{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+button.dng{border-color:#ffb3a8;color:#ffd6d0}
+button.sm{padding:3px 11px;font-size:.88rem}
+button:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=password],textarea{width:100%;background:#fff;color:var(--ink);border:2px solid #fff;border-radius:0;padding:9px 10px}
+textarea{min-height:84px;resize:vertical}
+label{display:block;font-weight:600;margin:12px 0 4px}
+.hide{display:none}.err{background:#fff;color:#a01800;padding:8px 12px;margin:10px 0;font-weight:600}
+.grid{display:grid;gap:12px;margin:12px 0}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+.opt{display:block;width:100%;text-align:left;border-radius:0;padding:14px 16px;font-weight:400;border:2px solid #fff;background:var(--deep)}
+.opt b{font-family:"Space Mono",monospace;display:block;font-size:1.02rem;margin-bottom:2px}
+.opt .sm2{font-size:.9rem;color:var(--mut)}
+.opt:hover,.opt:focus-visible{background:#fff;color:var(--ink)}.opt:hover .sm2{color:var(--ink)}
+.opt.done{border-color:var(--acc)}.opt .ok{color:var(--acc);font-weight:600}
+.opt:hover .ok{color:#8a5a00}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;font-size:.88rem}
+.steps span{padding:2px 10px;border:1px solid var(--line);border-radius:999px;color:var(--mut)}.steps span.on{background:var(--acc);color:var(--accfg);border-color:var(--acc);font-weight:600}
+.q{margin:16px 0 4px}.q h3{color:var(--acc);margin:0 0 2px}.q .s{margin:0 0 8px}
+.row{display:flex;gap:6px;align-items:flex-start;margin:6px 0}
+.row .in{flex:1;min-width:0}
+.row textarea{padding:8px 10px;min-height:42px;resize:none;overflow:hidden;line-height:1.35;display:block}
+.row .star{flex:none;width:42px;height:42px;padding:0;border-radius:0;border:2px solid #fff;font-size:1.2rem;line-height:1}
+.row .star.on{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+.row .x{flex:none;width:42px;height:42px;padding:0;border-radius:0;border:2px solid rgba(255,255,255,.6);font-size:1.1rem}
+.row.ed textarea{border-color:var(--acc)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--deep);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0));display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;z-index:5}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chip{display:inline-block;padding:1px 10px;border-radius:999px;font-size:.78rem;color:#1b1340;margin:2px 4px 2px 0;font-weight:600;white-space:nowrap}
+.big{font-family:"Space Mono",monospace;font-size:2rem;line-height:1}
+.stats{display:flex;gap:22px;flex-wrap:wrap;margin:10px 0}
+.stats div span{display:block;font-size:.8rem;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.cl{border-top:1px solid var(--line);padding:10px 0}.cl:first-child{border:0}
+.cl .nm{font-weight:600}.cl .sub{color:var(--mut);font-size:.92rem}
+.sbar{display:flex;height:12px;background:rgba(255,255,255,.15);margin:6px 0}.sbar i{display:block;height:100%}
+details>summary{cursor:pointer}
+details .it{font-size:.92rem;padding:3px 0;border-top:1px dashed var(--line)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--deep);font-family:"Space Mono",monospace;font-weight:400;font-size:.82rem}
+td.none{color:rgba(255,255,255,.45)}
+.heat td{color:#1b1340}.heat td.l{color:#fff}
+.ivc{background:#fff;color:var(--ink);padding:14px 16px;margin:10px 0}.ivc h3{color:var(--ink);margin:0 0 4px}
+.ivc .m{font-size:.92rem;margin-top:6px}.ivc .m b{font-family:"Space Mono",monospace;font-weight:400;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+.ivc .chip{background:#dfe8ff}
+.tabs{display:flex;gap:8px;margin:14px 0;border-bottom:2px solid var(--line)}
+.tabs button{border:0;border-radius:0;border-bottom:4px solid transparent;padding:8px 14px;font-size:1.05rem}
+.tabs button.on{background:transparent;color:var(--acc);border-bottom-color:var(--acc)}
+.note{background:var(--deep);padding:8px 12px;margin:10px 0;font-size:.92rem}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="content.js"></script>
+<script>
+(function(){
+"use strict";
+const C = window.CONTENT;
+const PCOL = {pm:"#ffd23f",fo:"#5ef2c0",gov:"#ff8fb8",adv:"#c3b1ff",fund:"#ff9f43",res:"#7fd1ff",ena:"#b6f23c"};
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s||"").toLowerCase().replace(/[^a-z0-9ऀ-࿿ ]+/g," ").replace(/\s+/g," ").trim();
+const slug = s => norm(s).replace(/ /g,"-").slice(0,60)||"x";
+const PN = Object.fromEntries(C.personas.map(p=>[p.id,p])), TN = Object.fromEntries(C.themes.map(t=>[t.id,t]));
+const app = document.getElementById("app");
+const chip = pid => `<span class="chip" style="background:${PCOL[pid]}">${esc(PN[pid].name)}</span>`;
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+
+/* ---------- PARTICIPANT ---------- */
+const S = {step:"group",g:"",land:"",place:"",pid:null,tid:null,done:[],draft:null,err:"",busy:false};
+try{const o=JSON.parse(lsGet("dotg2.grp")||"null"); if(o&&o.g){S.g=o.g;S.land=o.land||"";S.place=o.place||"";}}catch(e){}
+
+function mkDraft(pid,tid){
+  const p=C.pre[pid][tid], f=a=>a.map(t=>({t,orig:t,pre:true,star:false}));
+  return {c:f(p.c),d:f(p.d),h:f(p.h),help:""};
+}
+async function loadDone(){
+  try{const r=await fetch("/api/mine?g="+encodeURIComponent(S.g)); const j=await r.json(); S.done=j.done||[];}catch(e){S.done=[];}
+}
+function stepsBar(n){
+  const l=["Your group","Persona","Theme","Questions"];
+  return `<div class="steps">${l.map((x,i)=>`<span class="${i===n?"on":""}">${i+1}. ${x}</span>`).join("")}</div>`;
+}
+function rowsHtml(k,star){
+  return S.draft[k].map((r,i)=>`<div class="row ${r.pre&&r.t===r.orig?"":"ed"}" data-k="${k}" data-i="${i}">
+    ${star?`<button class="star ${r.star?"on":""}" data-act="star" data-k="${k}" data-i="${i}" title="${star}" aria-label="${star}" aria-pressed="${r.star}">★</button>`:""}
+    <div class="in"><textarea rows="1" maxlength="300" data-k="${k}" data-i="${i}" aria-label="Item ${i+1}">${esc(r.t)}</textarea></div>
+    <button class="x" data-act="del" data-k="${k}" data-i="${i}" aria-label="Remove">✕</button></div>`).join("");
+}
+function viewParticipant(){
+  let h=`<div class="kick">ILDC workshop</div><h1>Data on the Ground</h1>`;
+  if(S.err) h+=`<div class="err" role="alert">${esc(S.err)}</div>`;
+  if(S.step==="group"){
+    h+=stepsBar(0)+`<div class="card"><h2>Tell us about your group</h2>
+    <label for="g">Group name *</label><input type="text" id="g" maxlength="80" value="${esc(S.g)}" autocomplete="off">
+    <label for="land">Landscape or region you work in</label><input type="text" id="land" maxlength="80" value="${esc(S.land)}" autocomplete="off">
+    <label for="place">Organisation</label><input type="text" id="place" maxlength="80" value="${esc(S.place)}" autocomplete="off">
+    </div><div class="bar"><button class="pri" data-act="g-next">Next: choose persona →</button></div>`;
+  } else if(S.step==="persona"){
+    h+=stepsBar(1)+`<h2>Which persona is your group today?</h2><p class="s">Answer from this point of view.</p><div class="grid g2">`+
+    C.personas.map(p=>`<button class="opt" data-act="persona" data-id="${p.id}"><b>${esc(p.name)}</b><span class="sm2">${esc(p.short)}</span><br>${esc(p.brings)}</button>`).join("")+
+    `</div><div class="bar"><button data-act="to-group">← Back</button></div>`;
+  } else if(S.step==="theme"){
+    const p=PN[S.pid];
+    h+=stepsBar(2)+`<p class="s">Persona: <b>${esc(p.name)}</b> · Group: <b>${esc(S.g)}</b></p><h2>Choose one theme</h2><div class="grid g3">`+
+    C.themes.map(t=>{const d=S.done.includes(S.pid+"__"+t.id);return `<button class="opt ${d?"done":""}" data-act="theme" data-id="${t.id}"><b>${esc(t.name)}</b><span class="sm2">${esc(t.eg)}</span>${d?`<br><span class="ok">✓ answered</span>`:""}</button>`}).join("")+
+    `</div><div class="bar"><button data-act="to-persona">← Change persona</button></div>`;
+  } else if(S.step==="q"){
+    const p=PN[S.pid], t=TN[S.tid];
+    h+=stepsBar(3)+`<p class="s">${esc(S.g)} · <b>${esc(p.name)}</b> · <b>${esc(t.name)}</b> (${esc(t.eg)})</p>
+    <div class="note">We have filled in what people in your role often say. Edit, remove or add so it matches <b>your</b> experience.</div>
+    <div class="q"><h3>1. What data do you use to understand the situation on the ground?</h3>${rowsHtml("d")}<button class="sm" data-act="add" data-k="d">+ Add</button></div>
+    <div class="q"><h3>2. What gets in the way of getting or using this data?</h3><p class="s">Tap ★ on the one that hurts most. Required.</p>${rowsHtml("c","Biggest challenge")}<button class="sm" data-act="add" data-k="c">+ Add</button></div>
+    <div class="q"><h3>3. How do you cope with these challenges?</h3><p class="s">Tap ★ on what works best. Optional.</p>${rowsHtml("h","Works best")}<button class="sm" data-act="add" data-k="h">+ Add</button></div>
+    <div class="q"><h3>4. What one change would help most?</h3><p class="s">Optional.</p><textarea id="help" maxlength="600">${esc(S.draft.help)}</textarea></div>
+    <div class="bar"><button data-act="to-theme">← Back</button><button data-act="reset">Reset suggestions</button><button class="pri" data-act="submit" ${S.busy?"disabled":""}>${S.busy?"Saving…":"Submit"}</button></div>`;
+  } else if(S.step==="thanks"){
+    const left=C.themes.filter(t=>!S.done.includes(S.pid+"__"+t.id));
+    h+=`<div class="card"><h2>Thank you, ${esc(S.g)}.</h2><p>Your answers are saved.</p>
+    <div class="pills">${left.length?`<button class="pri" data-act="to-theme">Answer another theme</button>`:""}<button data-act="to-persona">Try another persona</button></div></div>`;
+  }
+  return h;
+}
+function pClick(e){
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act, k=b.dataset.k, i=+b.dataset.i;
+  S.err="";
+  if(a==="g-next"){
+    S.g=document.getElementById("g").value.trim(); S.land=document.getElementById("land").value.trim(); S.place=document.getElementById("place").value.trim();
+    if(!S.g){S.err="Please enter a group name.";return pRender();}
+    lsSet("dotg2.grp",JSON.stringify({g:S.g,land:S.land,place:S.place}));
+    loadDone().then(()=>{S.step="persona";pRender();}); return;
+  }
+  if(a==="to-group")S.step="group";
+  else if(a==="persona"){S.pid=b.dataset.id;S.step="theme";}
+  else if(a==="to-persona")S.step="persona";
+  else if(a==="theme"){S.tid=b.dataset.id;S.draft=mkDraft(S.pid,S.tid);S.step="q";}
+  else if(a==="to-theme"){S.step="theme";}
+  else if(a==="star"){const r=S.draft[k][i],v=!r.star;S.draft[k].forEach(x=>x.star=false);r.star=v;}
+  else if(a==="del"){S.draft[k].splice(i,1);}
+  else if(a==="add"){S.draft[k].push({t:"",orig:"",pre:false,star:false});pRender();const ins=app.querySelectorAll(`textarea[data-k="${k}"]`);if(ins.length)ins[ins.length-1].focus();return;}
+  else if(a==="reset"){S.draft=mkDraft(S.pid,S.tid);}
+  else if(a==="submit")return submit();
+  pRender(); window.scrollTo(0,0);
+}
+function pInput(e){
+  const t=e.target;
+  if(t.id==="help"){S.draft.help=t.value;return;}
+  if(t.dataset&&t.dataset.k&&S.draft){
+    const r=S.draft[t.dataset.k][+t.dataset.i]; if(!r)return; r.t=t.value;
+    t.closest(".row").classList.toggle("ed",!(r.pre&&r.t===r.orig)); t.style.height="auto"; t.style.height=t.scrollHeight+4+"px";
+  }
+}
+async function submit(){
+  const d=S.draft, clean=a=>a.map(r=>({t:r.t.replace(/\s+/g," ").trim(),pre:r.pre&&r.t.replace(/\s+/g," ").trim()===r.orig,star:!!r.star})).filter(r=>r.t);
+  const c=clean(d.c),dd=clean(d.d),h=clean(d.h);
+  if(!c.length){S.err="Add at least one challenge.";return pRender();}
+  if(!c.some(x=>x.star)){S.err="Tap ★ on your biggest challenge (question 2).";return pRender();}
+  S.busy=true;pRender();
+  try{
+    const r=await fetch("/api/submit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({g:S.g,land:S.land,place:S.place,pid:S.pid,pn:PN[S.pid].name,tid:S.tid,tn:TN[S.tid].name,c,d:dd,h,help:d.help})});
+    const j=await r.json(); if(!r.ok) throw new Error(j.error||"Could not save");
+    S.busy=false; if(!S.done.includes(S.pid+"__"+S.tid))S.done.push(S.pid+"__"+S.tid); S.step="thanks"; S.err=""; pRender(); window.scrollTo(0,0);
+  }catch(e){S.busy=false;S.err="Could not save: "+e.message+". Your answers are still here; try again.";pRender();}
+}
+function grow(){app.querySelectorAll(".row textarea").forEach(t=>{t.style.height="auto";t.style.height=t.scrollHeight+4+"px";});}
+function pRender(){app.innerHTML=viewParticipant();grow();}
+
+/* ---------- FACILITATOR ---------- */
+const A = {key:"",tab:"ov",sub:"part",theme:"all",kind:"c",data:null,err:"",busy:false,sig:"",auto:true,msg:""};
+const open_ = new Set();
+try{A.key=sessionStorage.getItem("dotg2.key")||"";}catch(e){}
+const KN = {c:"challenges",d:"data",h:"coping"};
+const api = async (p,opt={}) => {
+  const r=await fetch("/api/"+p,{...opt,headers:{...(opt.headers||{}),"x-admin-key":A.key,"content-type":"application/json"}});
+  const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||("Error "+r.status)); return j;
+};
+const rowsOf = tid => A.data.rows.filter(r=>r.tid===tid);
+const anOf = tid => (A.data.analysis&&A.data.analysis.themes&&A.data.analysis.themes[tid])||null;
+function cstats(tid,k){
+  const rows=rowsOf(tid), an=anOf(tid), defs=an?(an[KN[k]]||[]):[], assign=an?(an.assign[k]||{}):{};
+  const mk=o=>Object.assign({n:0,star:0,byP:{},items:new Map()},o);
+  const cl=defs.map(d=>mk(d)), un=mk({name:"Not yet grouped",summary:"New items entered after the last grouping, or left out of it.",ungrouped:true}), dyn=new Map();
+  rows.forEach(r=>{
+    const seen=new Map();
+    (r[k]||[]).forEach(it=>{
+      const key=norm(it.t); if(!key)return; let c=null;
+      if(an){const ix=assign[key]; c=(ix!==undefined&&cl[ix])?cl[ix]:un;}
+      else{c=dyn.get(key); if(!c){c=mk({name:it.t,summary:""});dyn.set(key,c);cl.push(c);}}
+      const e=c.items.get(key)||{text:it.t,n:0,pre:it.pre,add:0}; e.n++; if(!it.pre)e.add++; c.items.set(key,e);
+      seen.set(c,(seen.get(c)||false)||!!it.star);
+    });
+    seen.forEach((st,c)=>{c.n++; c.byP[r.pid]=(c.byP[r.pid]||0)+1; if(st)c.star++;});
+  });
+  const out=cl.map((c,i)=>(c.idx=i,c)).filter(c=>c.n>0).sort((a,b)=>(b.n*10+b.star)-(a.n*10+a.star));
+  if(un.n>0&&an) out.push(un);
+  return out;
+}
+const nGroups = tid => rowsOf(tid).length;
+const nByP = (tid,pid) => rowsOf(tid).filter(r=>r.pid===pid).length;
+function sbar(c,max){
+  const tot=Object.values(c.byP).reduce((a,b)=>a+b,0)||1;
+  return `<div class="sbar" style="width:${Math.max(6,Math.round(c.n/max*100))}%">${C.personas.filter(p=>c.byP[p.id]).map(p=>`<i title="${esc(p.name)}: ${c.byP[p.id]}" style="width:${c.byP[p.id]/tot*100}%;background:${PCOL[p.id]}"></i>`).join("")}</div>`;
+}
+function pchips(c){return C.personas.filter(p=>c.byP[p.id]).map(p=>`<span class="chip" style="background:${PCOL[p.id]}">${esc(p.name)} ${c.byP[p.id]}</span>`).join("");}
+function det(key,summary,body){return `<details data-key="${esc(key)}" ${open_.has(key)?"open":""}><summary>${summary}</summary>${body}</details>`;}
+function clusterList(tid,k,limit){
+  const cs=cstats(tid,k); if(!cs.length)return `<p class="tag">No responses yet.</p>`;
+  const max=Math.max(...cs.map(c=>c.n)), M=nGroups(tid);
+  return cs.slice(0,limit||99).map(c=>`<div class="cl"><div class="nm">${esc(c.name)} <span class="tag">· ${c.n} of ${M} groups${c.star?` · ★ ${c.star}`:""}</span></div>${c.summary?`<div class="sub">${esc(c.summary)}</div>`:""}${sbar(c,max)}<div>${pchips(c)}</div>
+  ${det(`${tid}${k}${c.idx}${c.ungrouped?"u":""}`,`<span class="tag">Show wording (${c.items.size})</span>`,[...c.items.values()].sort((a,b)=>b.n-a.n).map(e=>`<div class="it">${esc(e.text)} <span class="tag">×${e.n}${e.add?" · added by group":""}</span></div>`).join(""))}</div>`).join("");
+}
+function viewLogin(){
+  return `<div class="kick">Facilitator</div><h1>Data on the Ground</h1>${A.err?`<div class="err">${esc(A.err)}</div>`:""}
+  <div class="card"><label for="pw">Facilitator password</label><input type="password" id="pw" autocomplete="current-password"><p><button class="pri" data-act="login">Sign in</button></p></div>`;
+}
+function head(){
+  const d=A.data, an=d.analysis, job=d.job, groups=new Set(d.rows.map(r=>slug(r.g))).size;
+  const stale=an?d.rows.length-an.n:d.rows.length;
+  let st=""; if(job&&job.state==="running")st=`<div class="note">Grouping is running… this takes about a minute.</div>`;
+  else if(job&&job.state==="error")st=`<div class="note">Grouping failed: ${esc(job.error||"")}</div>`;
+  else if(an&&an.warnings&&an.warnings.length)st=`<div class="note">Grouping finished with warnings: ${esc(an.warnings.join("; "))}</div>`;
+  return `<div class="kick">Facilitator</div><h1>Data on the Ground</h1>
+  <div class="stats"><div><b class="big">${groups}</b><span>groups</span></div><div><b class="big">${d.rows.length}</b><span>answer sets</span></div><div><b class="big">${new Set(d.rows.map(r=>r.pid)).size}/7</b><span>personas</span></div></div>
+  <div class="pills"><button class="pri" data-act="analyse" ${job&&job.state==="running"?"disabled":""}>${an?"Update grouping":"Build grouping"}</button><button data-act="refresh">Refresh</button>
+  <label style="display:inline;margin:0"><input type="checkbox" id="auto" ${A.auto?"checked":""}> auto-refresh</label>
+  <button data-act="csv">Download CSV</button><button class="dng" data-act="clear">Clear all data</button></div>
+  <div id="clr" class="hide card deep"><b>This deletes every response.</b> Type DELETE to confirm. <input type="text" id="clrt" style="max-width:200px;margin:6px 6px 0 0"> <button class="dng" data-act="clear-go">Delete</button> <button data-act="clear-no">Cancel</button></div>
+  ${st}${an?(stale>0?`<div class="note">${stale} answer set${stale>1?"s":""} added since the last grouping. New wording shows as “Not yet grouped” until you update.</div>`:""):`<div class="note">Grouping not built yet. Counts below use exact wording. Press “Build grouping” once most groups have submitted.</div>`}
+  <div class="tabs"><button class="${A.tab==="ov"?"on":""}" data-act="tab" data-id="ov">Overview</button><button class="${A.tab==="adv"?"on":""}" data-act="tab" data-id="adv">Advanced</button></div>`;
+}
+function viewOverview(){
+  let h=`<h2>Key data challenges, by theme</h2><div class="grid g3">`;
+  C.themes.forEach(t=>{
+    h+=`<div class="card"><h3>${esc(t.name)}</h3><div class="tag">${nGroups(t.id)} answer sets</div>${clusterList(t.id,"c",4).replace(/<details[\s\S]*?<\/details>/g,"")}</div>`;
+  });
+  h+=`</div><h2 style="margin-top:26px">Biggest challenge, by persona and theme</h2><p class="s">What each persona raised most in each theme.</p><div class="wrap"><table><tr><th>Persona</th>${C.themes.map(t=>`<th>${esc(t.name)}</th>`).join("")}</tr>`;
+  C.personas.forEach(p=>{
+    h+=`<tr><td>${chip(p.id)}</td>`;
+    C.themes.forEach(t=>{
+      const m=nByP(t.id,p.id);
+      if(!m){h+=`<td class="none">—</td>`;return;}
+      const top=cstats(t.id,"c").filter(c=>c.byP[p.id]&&!c.ungrouped).sort((a,b)=>b.byP[p.id]-a.byP[p.id]).slice(0,2);
+      h+=`<td>${top.length?top.map(c=>`${esc(c.name)} <span class="tag">(${c.byP[p.id]}/${m})</span>`).join("<br>"):`<span class="tag">Not yet grouped</span>`}</td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</table></div><h2 style="margin-top:26px">What would help</h2><p class="s">Interventions suggested from the challenges, built on what people already do.</p>`;
+  if(!A.data.analysis) h+=`<div class="note">Press “Build grouping” to generate interventions.</div>`;
+  C.themes.forEach(t=>{
+    const an=anOf(t.id); if(!an||!an.interventions||!an.interventions.length)return;
+    const ch=cstats(t.id,"c"), co=cstats(t.id,"h");
+    h+=`<h3>${esc(t.name)}</h3>`;
+    an.interventions.forEach(iv=>{
+      const raised={}; iv.addresses.forEach(ix=>{const c=ch.find(x=>x.idx===ix&&!x.ungrouped); if(c)Object.keys(c.byP).forEach(p=>raised[p]=1);});
+      const prac=iv.builds_on.map(ix=>co.find(x=>x.idx===ix&&!x.ungrouped)).filter(Boolean);
+      const addr=iv.addresses.map(ix=>(an.challenges[ix]||{}).name).filter(Boolean);
+      h+=`<div class="ivc"><h3>${esc(iv.title)}</h3><div>${esc(iv.why)}</div>
+      ${addr.length?`<div class="m"><b>Addresses</b> ${addr.map(a=>`<span class="chip">${esc(a)}</span>`).join("")}</div>`:""}
+      ${iv.who?`<div class="m"><b>Who</b> ${esc(iv.who)}</div>`:""}
+      ${prac.length?`<div class="m"><b>Builds on what groups do</b> ${prac.map(c=>`<span class="chip">${esc(c.name)} (${c.n})</span>`).join("")}</div>`:""}
+      ${Object.keys(raised).length?`<div class="m"><b>Felt by</b> ${C.personas.filter(p=>raised[p.id]).map(p=>`<span class="chip" style="background:${PCOL[p.id]}">${esc(p.name)}</span>`).join("")}</div>`:""}</div>`;
+    });
+  });
+  return h;
+}
+const SUBS=[["part","Participation"],["c","Challenges"],["d","Data used"],["h","Coping"],["cmp","Personas compared"],["add","Added by groups"],["help","What would help"],["all","All responses"]];
+function themePills(){return `<div class="pills"><button class="sm ${A.theme==="all"?"on":""}" data-act="theme-f" data-id="all">All themes</button>${C.themes.map(t=>`<button class="sm ${A.theme===t.id?"on":""}" data-act="theme-f" data-id="${t.id}">${esc(t.name)}</button>`).join("")}</div>`;}
+function viewAdvanced(){
+  let h=`<div class="pills">${SUBS.map(s=>`<button class="sm ${A.sub===s[0]?"on":""}" data-act="sub" data-id="${s[0]}">${s[1]}</button>`).join("")}</div>`;
+  const th=A.theme==="all"?C.themes:[TN[A.theme]];
+  if(A.sub==="part"){
+    h+=`<h2>Who has answered</h2><div class="wrap"><table><tr><th>Persona</th>${C.themes.map(t=>`<th>${esc(t.name)}</th>`).join("")}</tr>${C.personas.map(p=>`<tr><td>${chip(p.id)}</td>${C.themes.map(t=>{const n=nByP(t.id,p.id);return n?`<td>${n}</td>`:`<td class="none">0</td>`}).join("")}</tr>`).join("")}</table></div>
+    <h3>Groups</h3><div class="wrap"><table><tr><th>Group</th><th>Organisation</th><th>Landscape</th><th>Answered</th></tr>${[...new Map(A.data.rows.map(r=>[slug(r.g),r])).values()].sort((a,b)=>a.g.localeCompare(b.g)).map(g=>`<tr><td>${esc(g.g)}</td><td>${esc(g.place)}</td><td>${esc(g.land)}</td><td>${A.data.rows.filter(r=>slug(r.g)===slug(g.g)).map(r=>`${esc(r.pn)} / ${esc(r.tn)}`).join("<br>")}</td></tr>`).join("")}</table></div>`;
+  } else if(A.sub==="c"||A.sub==="d"||A.sub==="h"){
+    h+=themePills()+th.map(t=>`<div class="card"><h3>${esc(t.name)}</h3>${clusterList(t.id,A.sub)}</div>`).join("")+`<div class="pills">${C.personas.map(p=>chip(p.id)).join("")}</div>`;
+  } else if(A.sub==="cmp"){
+    h+=`<div class="pills">${[["c","Challenges"],["d","Data used"],["h","Coping"]].map(x=>`<button class="sm ${A.kind===x[0]?"on":""}" data-act="kind" data-id="${x[0]}">${x[1]}</button>`).join("")}</div>`+themePills()+
+    `<p class="s">Shading shows the share of that persona's answer sets in the theme that mention the cluster.</p>`;
+    th.forEach(t=>{
+      const cs=cstats(t.id,A.kind).filter(c=>!c.ungrouped).slice(0,12); if(!cs.length){h+=`<div class="card"><h3>${esc(t.name)}</h3><p class="tag">Nothing to compare yet.</p></div>`;return;}
+      h+=`<div class="card"><h3>${esc(t.name)}</h3><div class="wrap"><table class="heat"><tr><th>Cluster</th>${C.personas.map(p=>`<th>${esc(p.name)}<br>(${nByP(t.id,p.id)})</th>`).join("")}</tr>${cs.map(c=>`<tr><td class="l">${esc(c.name)}</td>${C.personas.map(p=>{const m=nByP(t.id,p.id),v=c.byP[p.id]||0;if(!m)return `<td class="l none">·</td>`;const f=v/m;return `<td style="background:rgba(255,210,63,${(f*0.95).toFixed(2)})${f<.35?";color:#fff":""}">${v?Math.round(f*100)+"%":""}</td>`}).join("")}</tr>`).join("")}</table></div></div>`;
+    });
+  } else if(A.sub==="add"){
+    h+=themePills()+`<p class="s">Items groups wrote themselves or reworded: what the suggestions missed.</p>`;
+    th.forEach(t=>{
+      const m=new Map();
+      rowsOf(t.id).forEach(r=>["c","d","h"].forEach(k=>(r[k]||[]).forEach(it=>{if(it.pre)return;const key=k+norm(it.t);const e=m.get(key)||{k,text:it.t,n:0,p:{}};e.n++;e.p[r.pid]=1;m.set(key,e);})));
+      const arr=[...m.values()].sort((a,b)=>b.n-a.n);
+      h+=`<div class="card"><h3>${esc(t.name)}</h3>${arr.length?arr.slice(0,60).map(e=>`<div class="cl"><span class="chip" style="background:#fff">${KN[e.k]}</span>${esc(e.text)} <span class="tag">×${e.n}</span> ${C.personas.filter(p=>e.p[p.id]).map(p=>`<span class="chip" style="background:${PCOL[p.id]}">${esc(p.name)}</span>`).join("")}</div>`).join(""):`<p class="tag">Nothing added yet.</p>`}</div>`;
+    });
+  } else if(A.sub==="help"){
+    h+=themePills();
+    th.forEach(t=>{
+      const arr=rowsOf(t.id).filter(r=>r.help);
+      h+=`<div class="card"><h3>${esc(t.name)}</h3>${arr.length?arr.map(r=>`<div class="cl">${esc(r.help)}<br>${chip(r.pid)} <span class="tag">${esc(r.g)}</span></div>`).join(""):`<p class="tag">None yet.</p>`}</div>`;
+    });
+  } else {
+    h+=`<div class="wrap"><table><tr><th>Group</th><th>Persona</th><th>Theme</th><th>Biggest challenge</th><th>Works best</th><th>One change</th></tr>${A.data.rows.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<tr><td>${esc(r.g)}</td><td>${esc(r.pn)}</td><td>${esc(r.tn)}</td><td>${esc(((r.c||[]).find(x=>x.star)||{}).t||"")}</td><td>${esc(((r.h||[]).find(x=>x.star)||{}).t||"")}</td><td>${esc(r.help||"")}</td></tr>`).join("")}</table></div>`;
+  }
+  return h;
+}
+function viewAdmin(){
+  if(!A.data) return viewLogin();
+  const body=A.tab==="ov"?viewOverview():viewAdvanced();
+  return head()+`<div id="body">${body}</div>`;
+}
+function aRender(force){
+  const sig=A.data?JSON.stringify([A.data.rows.length,A.data.rows.reduce((s,r)=>s+r.ts,0),A.data.analysis&&A.data.analysis.ts,A.data.job&&A.data.job.state,A.tab,A.sub,A.theme,A.kind]):"x";
+  if(!force&&sig===A.sig)return; A.sig=sig;
+  const clr=document.getElementById("clr"), wasOpen=clr&&!clr.classList.contains("hide"), t=document.getElementById("clrt")&&document.getElementById("clrt").value;
+  const y=window.scrollY; app.innerHTML=viewAdmin();
+  if(wasOpen){document.getElementById("clr").classList.remove("hide");document.getElementById("clrt").value=t;}
+  window.scrollTo(0,y);
+}
+async function refresh(force){
+  try{A.data=await api("data"); A.err="";}catch(e){A.err=e.message; if(/Unauthor/.test(e.message)){A.data=null;try{sessionStorage.removeItem("dotg2.key")}catch(x){}}}
+  aRender(force||!A.data||!!A.err);
+}
+function toCsv(){
+  const q=v=>{v=String(v==null?"":v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';};
+  const out=[["group","organisation","landscape","persona","theme","type","text","added_by_group","starred"]];
+  A.data.rows.forEach(r=>{["d","c","h"].forEach(k=>(r[k]||[]).forEach(it=>out.push([r.g,r.place,r.land,r.pn,r.tn,KN[k],it.t,it.pre?"":"yes",it.star?"yes":""])));
+    if(r.help)out.push([r.g,r.place,r.land,r.pn,r.tn,"one change",r.help,"yes",""]);});
+  const blob=new Blob(["﻿"+out.map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data-on-the-ground.csv";document.body.appendChild(a);a.click();a.remove();
+}
+async function aClick(e){
+  const b=e.target.closest("[data-act]"); if(!b)return; const a=b.dataset.act;
+  if(a==="login"){A.key=document.getElementById("pw").value;try{await api("login");try{sessionStorage.setItem("dotg2.key",A.key)}catch(x){}await refresh(true);}catch(x){A.err=x.message;A.data=null;aRender(true);}return;}
+  if(a==="tab"){A.tab=b.dataset.id;aRender(true);return;}
+  if(a==="sub"){A.sub=b.dataset.id;aRender(true);return;}
+  if(a==="theme-f"){A.theme=b.dataset.id;aRender(true);return;}
+  if(a==="kind"){A.kind=b.dataset.id;aRender(true);return;}
+  if(a==="refresh"){await refresh(true);return;}
+  if(a==="csv"){toCsv();return;}
+  if(a==="clear"){document.getElementById("clr").classList.remove("hide");return;}
+  if(a==="clear-no"){document.getElementById("clr").classList.add("hide");return;}
+  if(a==="clear-go"){if(document.getElementById("clrt").value!=="DELETE")return;try{await api("reset",{method:"POST",body:JSON.stringify({confirm:"DELETE"})});}catch(x){A.err=x.message;}await refresh(true);return;}
+  if(a==="analyse"){
+    try{await api("analyse",{method:"POST",body:"{}"});}catch(x){A.err=x.message;aRender(true);return;}
+    b.disabled=true; await refresh(true);
+    for(let i=0;i<90;i++){await new Promise(r=>setTimeout(r,3000));await refresh(true);if(!A.data.job||A.data.job.state!=="running")break;}
+  }
+}
+function adminInit(){
+  app.addEventListener("click",aClick);
+  document.addEventListener("toggle",e=>{const d=e.target;if(d.tagName==="DETAILS"&&d.dataset.key){d.open?open_.add(d.dataset.key):open_.delete(d.dataset.key);}},true);
+  app.addEventListener("change",e=>{if(e.target.id==="auto")A.auto=e.target.checked;});
+  app.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="pw")document.querySelector('[data-act="login"]').click();});
+  setInterval(()=>{if(A.data&&A.auto&&!document.hidden)refresh(false);},10000);
+  if(A.key)refresh(true);else aRender(true);
+}
+
+/* ---------- boot ---------- */
+function boot(){
+  if(location.hash==="#admin"){adminInit();return;}
+  app.addEventListener("click",pClick); app.addEventListener("input",pInput);
+  app.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="TEXTAREA"&&e.target.dataset.k){e.preventDefault();return;}if(e.key==="Enter"&&(e.target.id==="g"||e.target.id==="land"||e.target.id==="place"))document.querySelector('[data-act="g-next"]').click();});
+  pRender();
+}
+window.addEventListener("hashchange",()=>location.reload());
+boot();
+})();
+</script>
+</body>
+</html>
