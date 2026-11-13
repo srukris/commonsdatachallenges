@@ -35,6 +35,7 @@ label{display:block;font-weight:600;margin:12px 0 4px}
 .opt b{font-family:"Space Mono",monospace;display:block;font-size:1.02rem;margin-bottom:2px}
 .opt .sm2{font-size:.9rem;color:var(--mut)}
 .opt:hover,.opt:focus-visible{background:#fff;color:var(--ink)}.opt:hover .sm2{color:var(--ink)}
+.opt.sel{background:#fff;color:var(--ink);border-color:var(--acc)}.opt.sel .sm2{color:var(--ink)}
 .opt.done{border-color:var(--acc)}.opt .ok{color:var(--acc);font-weight:600}
 .opt:hover .ok{color:#8a5a00}
 .steps{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;font-size:.88rem}
@@ -70,6 +71,7 @@ td.none{color:rgba(255,255,255,.45)}
 .tabs{display:flex;gap:8px;margin:14px 0;border-bottom:2px solid var(--line)}
 .tabs button{border:0;border-radius:0;border-bottom:4px solid transparent;padding:8px 14px;font-size:1.05rem}
 .tabs button.on{background:transparent;color:var(--acc);border-bottom-color:var(--acc)}
+.guide{background:#fff;color:var(--ink);border-left:10px solid var(--acc);padding:14px 18px;margin:14px 0;font-size:1.2rem;line-height:1.45}.guide b:first-child{font-family:"Space Mono",monospace;font-size:1.05rem;text-transform:uppercase;letter-spacing:.06em}.guide p{margin:6px 0}.guide ul{margin:6px 0 4px;padding-left:22px}.guide li{margin:4px 0}
 .note{background:var(--deep);padding:8px 12px;margin:10px 0;font-size:.92rem}
 </style>
 </head>
@@ -91,8 +93,8 @@ function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 
 /* ---------- PARTICIPANT ---------- */
-const S = {step:"group",g:"",land:"",place:"",pid:null,tid:null,done:[],draft:null,err:"",busy:false};
-try{const o=JSON.parse(lsGet("dotg2.grp")||"null"); if(o&&o.g){S.g=o.g;S.land=o.land||"";S.place=o.place||"";}}catch(e){}
+const S = {step:"start",g:"",pid:null,tid:null,done:[],draft:null,err:"",busy:false,saved:""};
+try{const o=JSON.parse(lsGet("dotg2.grp")||"null"); if(o&&o.g){S.g=o.g;S.pid=o.pid&&PN[o.pid]?o.pid:null;}}catch(e){}
 
 function mkDraft(pid,tid){
   const p=C.pre[pid][tid], f=a=>a.map(t=>({t,orig:t,pre:true,star:false}));
@@ -102,7 +104,7 @@ async function loadDone(){
   try{const r=await fetch("/api/mine?g="+encodeURIComponent(S.g)); const j=await r.json(); S.done=j.done||[];}catch(e){S.done=[];}
 }
 function stepsBar(n){
-  const l=["Your group","Persona","Theme","Questions"];
+  const l=["Group and persona","Themes"];
   return `<div class="steps">${l.map((x,i)=>`<span class="${i===n?"on":""}">${i+1}. ${x}</span>`).join("")}</div>`;
 }
 function rowsHtml(k,star){
@@ -114,34 +116,27 @@ function rowsHtml(k,star){
 function viewParticipant(){
   let h=`<div class="kick">ILDC workshop</div><h1>Data on the Ground</h1>`;
   if(S.err) h+=`<div class="err" role="alert">${esc(S.err)}</div>`;
-  if(S.step==="group"){
-    h+=stepsBar(0)+`<div class="card"><h2>Tell us about your group</h2>
-    <label for="g">Group name *</label><input type="text" id="g" maxlength="80" value="${esc(S.g)}" autocomplete="off">
-    <label for="land">Landscape or region you work in</label><input type="text" id="land" maxlength="80" value="${esc(S.land)}" autocomplete="off">
-    <label for="place">Organisation</label><input type="text" id="place" maxlength="80" value="${esc(S.place)}" autocomplete="off">
-    </div><div class="bar"><button class="pri" data-act="g-next">Next: choose persona →</button></div>`;
-  } else if(S.step==="persona"){
-    h+=stepsBar(1)+`<h2>Which persona is your group today?</h2><p class="s">Answer from this point of view.</p><div class="grid g2">`+
-    C.personas.map(p=>`<button class="opt" data-act="persona" data-id="${p.id}"><b>${esc(p.name)}</b><span class="sm2">${esc(p.short)}</span><br>${esc(p.brings)}</button>`).join("")+
-    `</div><div class="bar"><button data-act="to-group">← Back</button></div>`;
+  if(S.step==="start"){
+    h+=stepsBar(0)+`<div class="card"><h2>Your group</h2>
+    <label for="g">Group name *</label><input type="text" id="g" maxlength="80" value="${esc(S.g)}" autocomplete="off"></div>
+    <h2>Which persona is your group today?</h2><p class="s">Answer from this point of view.</p><div class="grid g2">`+
+    C.personas.map(p=>`<button class="opt ${S.pid===p.id?"sel":""}" data-act="persona" data-id="${p.id}" aria-pressed="${S.pid===p.id}"><b>${S.pid===p.id?"✓ ":""}${esc(p.name)}</b><span class="sm2">${esc(p.short)}</span><br>${esc(p.brings)}</button>`).join("")+
+    `</div><div class="bar"><button class="pri" data-act="start-next">Next: choose theme →</button></div>`;
   } else if(S.step==="theme"){
-    const p=PN[S.pid];
-    h+=stepsBar(2)+`<p class="s">Persona: <b>${esc(p.name)}</b> · Group: <b>${esc(S.g)}</b></p><h2>Choose one theme</h2><div class="grid g3">`+
-    C.themes.map(t=>{const d=S.done.includes(S.pid+"__"+t.id);return `<button class="opt ${d?"done":""}" data-act="theme" data-id="${t.id}"><b>${esc(t.name)}</b><span class="sm2">${esc(t.eg)}</span>${d?`<br><span class="ok">✓ answered</span>`:""}</button>`}).join("")+
-    `</div><div class="bar"><button data-act="to-persona">← Change persona</button></div>`;
+    const p=PN[S.pid], nd=C.themes.filter(t=>S.done.includes(S.pid+"__"+t.id)).length;
+    h+=stepsBar(1)+`<p class="s">Group: <b>${esc(S.g)}</b> · Persona: <b>${esc(p.name)}</b> <button class="sm" data-act="to-start">Change</button></p>
+    ${S.saved?`<div class="note" role="status">✓ Saved: ${esc(S.saved)}.${nd<3?" Choose another theme when you are ready.":" All three themes are done. Thank you!"}</div>`:""}
+    <h2>Choose a theme</h2><p class="s">${nd} of 3 answered. You can answer them in any order.</p><div class="grid g3">`+
+    C.themes.map(t=>{const d=S.done.includes(S.pid+"__"+t.id);return `<button class="opt ${d?"done":""}" data-act="theme" data-id="${t.id}"><b>${esc(t.name)}</b><span class="sm2">${esc(t.eg)}</span><br><span class="${d?"ok":"sm2"}">${d?"✓ Answered · tap to redo":"Not answered yet"}</span></button>`}).join("")+`</div>`;
   } else if(S.step==="q"){
-    const p=PN[S.pid], t=TN[S.tid];
-    h+=stepsBar(3)+`<p class="s">${esc(S.g)} · <b>${esc(p.name)}</b> · <b>${esc(t.name)}</b> (${esc(t.eg)})</p>
-    <div class="note">We have filled in what people in your role often say. Edit, remove or add so it matches <b>your</b> experience.</div>
+    const p=PN[S.pid], t=TN[S.tid], redo=S.done.includes(S.pid+"__"+S.tid);
+    h+=stepsBar(1)+`<p class="s">${esc(S.g)} · <b>${esc(p.name)}</b> · <b>${esc(t.name)}</b> (${esc(t.eg)})</p>
+    <div class="guide"><b>How this works</b><p>We have filled in what people in your role often say.</p><ul><li><b>Edit:</b> click on any text box and change the words so it matches your experience.</li><li><b>Delete:</b> click the <b>✕</b> on the right to remove a line completely.</li><li><b>Add:</b> use the <b>+ Add</b> button under each question to write a new line.</li></ul>${redo?"<p>Submitting again replaces your earlier answer for this theme.</p>":""}</div>
     <div class="q"><h3>1. What data do you use to understand the situation on the ground?</h3>${rowsHtml("d")}<button class="sm" data-act="add" data-k="d">+ Add</button></div>
     <div class="q"><h3>2. What gets in the way of getting or using this data?</h3><p class="s">Tap ★ on the one that hurts most. Required.</p>${rowsHtml("c","Biggest challenge")}<button class="sm" data-act="add" data-k="c">+ Add</button></div>
     <div class="q"><h3>3. How do you cope with these challenges?</h3><p class="s">Tap ★ on what works best. Optional.</p>${rowsHtml("h","Works best")}<button class="sm" data-act="add" data-k="h">+ Add</button></div>
     <div class="q"><h3>4. What one change would help most?</h3><p class="s">Optional.</p><textarea id="help" maxlength="600">${esc(S.draft.help)}</textarea></div>
-    <div class="bar"><button data-act="to-theme">← Back</button><button data-act="reset">Reset suggestions</button><button class="pri" data-act="submit" ${S.busy?"disabled":""}>${S.busy?"Saving…":"Submit"}</button></div>`;
-  } else if(S.step==="thanks"){
-    const left=C.themes.filter(t=>!S.done.includes(S.pid+"__"+t.id));
-    h+=`<div class="card"><h2>Thank you, ${esc(S.g)}.</h2><p>Your answers are saved.</p>
-    <div class="pills">${left.length?`<button class="pri" data-act="to-theme">Answer another theme</button>`:""}<button data-act="to-persona">Try another persona</button></div></div>`;
+    <div class="bar"><button data-act="to-theme">← Back to themes</button><button data-act="reset">Reset suggestions</button><button class="pri" data-act="submit" ${S.busy?"disabled":""}>${S.busy?"Saving…":"Submit and back to themes"}</button></div>`;
   }
   return h;
 }
@@ -149,16 +144,16 @@ function pClick(e){
   const b=e.target.closest("[data-act]"); if(!b) return;
   const a=b.dataset.act, k=b.dataset.k, i=+b.dataset.i;
   S.err="";
-  if(a==="g-next"){
-    S.g=document.getElementById("g").value.trim(); S.land=document.getElementById("land").value.trim(); S.place=document.getElementById("place").value.trim();
+  if(a==="persona"){S.g=document.getElementById("g").value;S.pid=b.dataset.id;return pRender();}
+  if(a==="start-next"){
+    S.g=document.getElementById("g").value.trim();
     if(!S.g){S.err="Please enter a group name.";return pRender();}
-    lsSet("dotg2.grp",JSON.stringify({g:S.g,land:S.land,place:S.place}));
-    loadDone().then(()=>{S.step="persona";pRender();}); return;
+    if(!S.pid){S.err="Please choose a persona.";return pRender();}
+    lsSet("dotg2.grp",JSON.stringify({g:S.g,pid:S.pid}));
+    loadDone().then(()=>{S.step="theme";S.saved="";pRender();window.scrollTo(0,0);}); return;
   }
-  if(a==="to-group")S.step="group";
-  else if(a==="persona"){S.pid=b.dataset.id;S.step="theme";}
-  else if(a==="to-persona")S.step="persona";
-  else if(a==="theme"){S.tid=b.dataset.id;S.draft=mkDraft(S.pid,S.tid);S.step="q";}
+  if(a==="to-start")S.step="start";
+  else if(a==="theme"){S.tid=b.dataset.id;S.draft=mkDraft(S.pid,S.tid);S.step="q";S.saved="";}
   else if(a==="to-theme"){S.step="theme";}
   else if(a==="star"){const r=S.draft[k][i],v=!r.star;S.draft[k].forEach(x=>x.star=false);r.star=v;}
   else if(a==="del"){S.draft[k].splice(i,1);}
@@ -182,9 +177,9 @@ async function submit(){
   if(!c.some(x=>x.star)){S.err="Tap ★ on your biggest challenge (question 2).";return pRender();}
   S.busy=true;pRender();
   try{
-    const r=await fetch("/api/submit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({g:S.g,land:S.land,place:S.place,pid:S.pid,pn:PN[S.pid].name,tid:S.tid,tn:TN[S.tid].name,c,d:dd,h,help:d.help})});
+    const r=await fetch("/api/submit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({g:S.g,pid:S.pid,pn:PN[S.pid].name,tid:S.tid,tn:TN[S.tid].name,c,d:dd,h,help:d.help})});
     const j=await r.json(); if(!r.ok) throw new Error(j.error||"Could not save");
-    S.busy=false; if(!S.done.includes(S.pid+"__"+S.tid))S.done.push(S.pid+"__"+S.tid); S.step="thanks"; S.err=""; pRender(); window.scrollTo(0,0);
+    S.busy=false; if(!S.done.includes(S.pid+"__"+S.tid))S.done.push(S.pid+"__"+S.tid); S.saved=TN[S.tid].name; S.step="theme"; S.err=""; pRender(); window.scrollTo(0,0);
   }catch(e){S.busy=false;S.err="Could not save: "+e.message+". Your answers are still here; try again.";pRender();}
 }
 function grow(){app.querySelectorAll(".row textarea").forEach(t=>{t.style.height="auto";t.style.height=t.scrollHeight+4+"px";});}
@@ -295,7 +290,7 @@ function viewAdvanced(){
   const th=A.theme==="all"?C.themes:[TN[A.theme]];
   if(A.sub==="part"){
     h+=`<h2>Who has answered</h2><div class="wrap"><table><tr><th>Persona</th>${C.themes.map(t=>`<th>${esc(t.name)}</th>`).join("")}</tr>${C.personas.map(p=>`<tr><td>${chip(p.id)}</td>${C.themes.map(t=>{const n=nByP(t.id,p.id);return n?`<td>${n}</td>`:`<td class="none">0</td>`}).join("")}</tr>`).join("")}</table></div>
-    <h3>Groups</h3><div class="wrap"><table><tr><th>Group</th><th>Organisation</th><th>Landscape</th><th>Answered</th></tr>${[...new Map(A.data.rows.map(r=>[slug(r.g),r])).values()].sort((a,b)=>a.g.localeCompare(b.g)).map(g=>`<tr><td>${esc(g.g)}</td><td>${esc(g.place)}</td><td>${esc(g.land)}</td><td>${A.data.rows.filter(r=>slug(r.g)===slug(g.g)).map(r=>`${esc(r.pn)} / ${esc(r.tn)}`).join("<br>")}</td></tr>`).join("")}</table></div>`;
+    <h3>Groups</h3><div class="wrap"><table><tr><th>Group</th><th>Answered</th></tr>${[...new Map(A.data.rows.map(r=>[slug(r.g),r])).values()].sort((a,b)=>a.g.localeCompare(b.g)).map(g=>`<tr><td>${esc(g.g)}</td><td>${A.data.rows.filter(r=>slug(r.g)===slug(g.g)).map(r=>`${esc(r.pn)} / ${esc(r.tn)}`).join("<br>")}</td></tr>`).join("")}</table></div>`;
   } else if(A.sub==="c"||A.sub==="d"||A.sub==="h"){
     h+=themePills()+th.map(t=>`<div class="card"><h3>${esc(t.name)}</h3>${clusterList(t.id,A.sub)}</div>`).join("")+`<div class="pills">${C.personas.map(p=>chip(p.id)).join("")}</div>`;
   } else if(A.sub==="cmp"){
@@ -343,9 +338,9 @@ async function refresh(force){
 }
 function toCsv(){
   const q=v=>{v=String(v==null?"":v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';};
-  const out=[["group","organisation","landscape","persona","theme","type","text","added_by_group","starred"]];
-  A.data.rows.forEach(r=>{["d","c","h"].forEach(k=>(r[k]||[]).forEach(it=>out.push([r.g,r.place,r.land,r.pn,r.tn,KN[k],it.t,it.pre?"":"yes",it.star?"yes":""])));
-    if(r.help)out.push([r.g,r.place,r.land,r.pn,r.tn,"one change",r.help,"yes",""]);});
+  const out=[["group","persona","theme","type","text","added_by_group","starred"]];
+  A.data.rows.forEach(r=>{["d","c","h"].forEach(k=>(r[k]||[]).forEach(it=>out.push([r.g,r.pn,r.tn,KN[k],it.t,it.pre?"":"yes",it.star?"yes":""])));
+    if(r.help)out.push([r.g,r.pn,r.tn,"one change",r.help,"yes",""]);});
   const blob=new Blob(["﻿"+out.map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data-on-the-ground.csv";document.body.appendChild(a);a.click();a.remove();
 }
@@ -380,7 +375,7 @@ function adminInit(){
 function boot(){
   if(location.hash==="#admin"){adminInit();return;}
   app.addEventListener("click",pClick); app.addEventListener("input",pInput);
-  app.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="TEXTAREA"&&e.target.dataset.k){e.preventDefault();return;}if(e.key==="Enter"&&(e.target.id==="g"||e.target.id==="land"||e.target.id==="place"))document.querySelector('[data-act="g-next"]').click();});
+  app.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="TEXTAREA"&&e.target.dataset.k){e.preventDefault();return;}if(e.key==="Enter"&&e.target.id==="g")document.querySelector('[data-act="start-next"]').click();});
   pRender();
 }
 window.addEventListener("hashchange",()=>location.reload());
